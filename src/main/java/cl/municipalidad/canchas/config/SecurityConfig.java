@@ -1,4 +1,4 @@
-package cl.municipalidad.canchas.config; // Asegúrate de que este paquete sea el correcto en tu proyecto
+package cl.municipalidad.canchas.config;
 
 import javax.crypto.spec.SecretKeySpec;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +29,18 @@ public class SecurityConfig {
             .csrf(csrf -> csrf.disable()) 
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
             .authorizeHttpRequests(auth -> auth
+                // 🔓 RUTAS PÚBLICAS REQUERIDAS POR EL GATEWAY Y EL PROFESOR
+                .requestMatchers(
+                    "/v3/api-docs/**",                 // JSON nativo para el Gateway
+                    "/api/v1/canchas/v3/api-docs/**",  // JSON a través del prefijo del Gateway
+                    "/doc/swagger-ui.html",            // URL personalizada por el Profesor 🎓
+                    "/swagger-ui.html",                // 🔓 Liberada también la ruta por defecto para evitar el error 401
+                    "/swagger-ui/**",                  // Recursos internos de la interfaz gráfica
+                    "/webjars/**",                     // Estilos y JS del motor de Swagger
+                    "/error"                           // Manejo de errores globales de Spring
+                ).permitAll()
+                
+                // Todo el resto de la operativa municipal protegida por JWT
                 .anyRequest().authenticated()
             )
             .oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt -> {
